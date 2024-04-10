@@ -1,6 +1,14 @@
+#define TESTING_AUTON true //PLEASE PLEASE PLEASE PLEASE ALWAYS SET TO FALSE OUTSIDE OF THE LAB, GONNA LOOK SO STUPID IF YOU DONT
+
 #include "main.h"
 #include "robot.h"
 #include "jank-lib/AutonSelector.h"
+
+//autons
+#include "autons/MatchAuton1.hpp"
+
+#include "EZ-Template/api.hpp"
+#include "okapi/api.hpp"
 
 using namespace pros;
 
@@ -40,6 +48,11 @@ void initialize() {
 	//selector.add("Launch", "Warheads")
 
 	climbMotor.set_brake_mode(E_MOTOR_BRAKE_HOLD);
+
+	//pid stuff
+	chassis.pid_drive_constants_set(5, 0, 2);
+	//chassis.slew_drive_constants_set(okapi::QLength(5.0), 40);
+	chassis.pid_turn_constants_set(1, 0, 0);
 }
 
 void disabled() {}
@@ -48,6 +61,7 @@ void disabled() {}
 void competition_initialize() {
 	if(!selectingAuton) {
 		//calibrate
+		chassis.drive_imu_calibrate();
 
 		Task t(select_auton_thread);
 	}
@@ -68,6 +82,14 @@ void autonomous() {
 bool leftBackWingDeployed = false;
 bool rightBackWingDeployed = false;
 void opcontrol() {
+
+	if(TESTING_AUTON) {
+		chassis.drive_imu_calibrate();
+		matchAuton1();
+	}
+
+	chassis.drive_brake_set(E_MOTOR_BRAKE_COAST);
+
 	while(!selectingAuton) {
 		chassis.opcontrol_arcade_standard(ez::SPLIT);
 
